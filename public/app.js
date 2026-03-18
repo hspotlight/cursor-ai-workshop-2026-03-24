@@ -1,130 +1,147 @@
-// Check if user is authenticated
-let currentUser = null;
+// Wait for Firebase to be initialized
+function setupApp() {
+  // Check if user is authenticated
+  let currentUser = null;
 
-auth.onAuthStateChanged((user) => {
-  if (!user) {
+  auth.onAuthStateChanged((user) => {
+    if (!user) {
+      window.location.href = '/login.html';
+    } else {
+      currentUser = user;
+      userEmailEl.textContent = user.email;
+      loadTodos();
+    }
+  });
+
+  const todoInput = document.getElementById('todo-input');
+  const addBtn = document.getElementById('add-btn');
+  const todoList = document.getElementById('todo-list');
+  const userEmailEl = document.getElementById('user-email');
+  const logoutBtn = document.getElementById('logout-btn');
+  const errorMsg = document.getElementById('error-msg');
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+    setTimeout(() => (errorMsg.style.display = 'none'), 3000);
+  }
+
+  // Logout
+  logoutBtn.addEventListener('click', async () => {
+    await logout();
     window.location.href = '/login.html';
-  } else {
-    currentUser = user;
-    userEmailEl.textContent = user.email;
-    loadTodos();
-  }
-});
+  });
 
-const todoInput = document.getElementById('todo-input');
-const addBtn = document.getElementById('add-btn');
-const todoList = document.getElementById('todo-list');
-const userEmailEl = document.getElementById('user-email');
-const logoutBtn = document.getElementById('logout-btn');
-const errorMsg = document.getElementById('error-msg');
-
-function showError(msg) {
-  errorMsg.textContent = msg;
-  errorMsg.style.display = 'block';
-  setTimeout(() => (errorMsg.style.display = 'none'), 3000);
-}
-
-// Logout
-logoutBtn.addEventListener('click', async () => {
-  await logout();
-  window.location.href = '/login.html';
-});
-
-// Load all todos from Firestore
-async function loadTodos() {
-  try {
-    const todos = await getTodos(currentUser.uid);
-    renderTodos(todos);
-  } catch (err) {
-    showError(err.message);
-  }
-}
-
-// Render the todo list to the DOM
-function renderTodos(todos) {
-  todoList.innerHTML = '';
-
-  if (todos.length === 0) {
-    todoList.innerHTML = '<p class="empty">No todos yet. Add one above!</p>';
-    return;
+  // Load all todos from Firestore
+  async function loadTodos() {
+    try {
+      const todos = await getTodos(currentUser.uid);
+      renderTodos(todos);
+    } catch (err) {
+      showError(err.message);
+    }
   }
 
-  todos.forEach((todo) => {
-    const item = document.createElement('li');
-    item.className = 'todo-item' + (todo.completed ? ' completed' : '');
-    item.dataset.id = todo.id;
+  // Render the todo list to the DOM
+  function renderTodos(todos) {
+    todoList.innerHTML = '';
 
-    item.innerHTML = `
-      <input type="checkbox" class="todo-check" ${todo.completed ? 'checked' : ''} />
-      <span class="todo-title">${escapeHtml(todo.title)}</span>
-      <button class="delete-btn" title="Delete">✕</button>
-    `;
+    if (todos.length === 0) {
+      todoList.innerHTML = '<p class="empty">No todos yet. Add one above!</p>';
+      return;
+    }
 
-    // Toggle completed
-    item.querySelector('.todo-check').addEventListener('change', () => {
-      toggleTodo(todo.id, !todo.completed);
+    todos.forEach((todo) => {
+      const item = document.createElement('li');
+      item.className = 'todo-item' + (todo.completed ? ' completed' : '');
+      item.dataset.id = todo.id;
+
+      item.innerHTML = `
+        <input type="checkbox" class="todo-check" ${todo.completed ? 'checked' : ''} />
+        <span class="todo-title">${escapeHtml(todo.title)}</span>
+        <button class="delete-btn" title="Delete">✕</button>
+      `;
+
+      // Toggle completed
+      item.querySelector('.todo-check').addEventListener('change', () => {
+        toggleTodo(todo.id, !todo.completed);
+      });
+
+      // Delete
+      item.querySelector('.delete-btn').addEventListener('click', () => {
+        deleteTodoItem(todo.id);
+      });
+
+      todoList.appendChild(item);
     });
+  }
 
-    // Delete
-    item.querySelector('.delete-btn').addEventListener('click', () => {
-      deleteTodoItem(todo.id);
-    });
+  // Add a new todo
+  async function addTodoItem() {
+    const title = todoInput.value.trim();
+    if (!title) return;
 
-    todoList.appendChild(item);
+    try {
+      const todo = await addTodo(currentUser.uid, title);
+      todoInput.value = '';
+      // Prepend new todo to the list
+      renderTodos([todo, ...getCurrentTodos()]);
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  // Toggle a todo's completed state
+  async function toggleTodo(id, completed) {
+    try {
+      await updateTodo(currentUser.uid, id, { completed });
+      loadTodos();
+    } catch (err) {
+      showError(err.message);
+      loadTodos(); // revert UI on failure
+    }
+  }
+
+  // Delete a todo
+  async function deleteTodoItem(id) {
+    try {
+      await deleteTodo(currentUser.uid, id);
+      document.querySelector(`[data-id="${id}"]`).remove();
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  // Helpers
+  function getCurrentTodos() {
+    return Array.from(todoList.querySelectorAll('.todo-item')).map((el) => ({
+      id: el.dataset.id,
+      title: el.querySelector('.todo-title').textContent,
+      completed: el.classList.contains('completed'),
+    }));
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Events
+  addBtn.addEventListener('click', addTodoItem);
+  todoInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addTodoItem();
   });
 }
 
-// Add a new todo
-async function addTodoItem() {
-  const title = todoInput.value.trim();
-  if (!title) return;
-
-  try {
-    const todo = await addTodo(currentUser.uid, title);
-    todoInput.value = '';
-    // Prepend new todo to the list
-    renderTodos([todo, ...getCurrentTodos()]);
-  } catch (err) {
-    showError(err.message);
-  }
+// Wait for Firebase to initialize
+if (typeof auth !== 'undefined' && auth) {
+  setupApp();
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    const checkAuth = setInterval(() => {
+      if (typeof auth !== 'undefined' && auth) {
+        clearInterval(checkAuth);
+        setupApp();
+      }
+    }, 100);
+  });
 }
-
-// Toggle a todo's completed state
-async function toggleTodo(id, completed) {
-  try {
-    await updateTodo(currentUser.uid, id, { completed });
-    loadTodos();
-  } catch (err) {
-    showError(err.message);
-    loadTodos(); // revert UI on failure
-  }
-}
-
-// Delete a todo
-async function deleteTodoItem(id) {
-  try {
-    await deleteTodo(currentUser.uid, id);
-    document.querySelector(`[data-id="${id}"]`).remove();
-  } catch (err) {
-    showError(err.message);
-  }
-}
-
-// Helpers
-function getCurrentTodos() {
-  return Array.from(todoList.querySelectorAll('.todo-item')).map((el) => ({
-    id: el.dataset.id,
-    title: el.querySelector('.todo-title').textContent,
-    completed: el.classList.contains('completed'),
-  }));
-}
-
-function escapeHtml(str) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-// Events
-addBtn.addEventListener('click', addTodoItem);
-todoInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addTodoItem();
-});
