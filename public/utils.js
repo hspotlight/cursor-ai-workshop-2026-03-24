@@ -15,7 +15,7 @@ function initializeFirebase() {
 
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
-  db = firebase.firestore();
+  db = firebase.firestore(firebase.app(), 'velocty'); // Use 'velocty' database, not (default)
 }
 
 // Wait for Firebase SDK to load

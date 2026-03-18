@@ -100,10 +100,33 @@ pnpm test:watch       # Run and re-run on changes
 
 ## Deployment
 
+**First time setup:**
 ```bash
 npm install -g firebase-tools
-firebase init hosting
+firebase login
+firebase init
+# Select: Firestore, Hosting
+# Use existing project: velocty-ab097
+```
+
+**Deploy (rules + app):**
+```bash
 firebase deploy
 ```
 
-Static files from `public/` deploy to Firebase Hosting (CDN). Auth & database are handled by Firebase backend.
+**Deploy only rules:**
+```bash
+firebase deploy --only firestore:rules
+```
+
+**Deploy only hosting:**
+```bash
+firebase deploy --only hosting
+```
+
+**Security Rules** (`firestore.rules`):
+- Users can only read/write their own user document
+- Users can only read/write their own todos
+- All other access denied
+
+The rules ensure data isolation—each user can only see/modify their own todos.
