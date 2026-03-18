@@ -1,47 +1,76 @@
-// Shared helpers for Firebase auth and API calls
-
-// Initialize Firebase (copy your Firebase config here)
+// Initialize Firebase
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'your-project.firebaseapp.com',
-  projectId: 'your-project-id',
-  storageBucket: 'your-project.appspot.com',
-  messagingSenderId: 'your-sender-id',
-  appId: 'your-app-id',
+  apiKey: 'AIzaSyC3MaMRJw1H1znHqm48U8di1_HT-pq2DuI',
+  authDomain: 'velocty-ab097.firebaseapp.com',
+  projectId: 'velocty-ab097',
+  storageBucket: 'velocty-ab097.firebasestorage.app',
+  messagingSenderId: '255881210755',
+  appId: '1:255881210755:web:cbf8815b1ddc61aa7c24b6',
 };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.firestore();
 
-// Get current user's ID token for API calls
-async function getToken() {
-  const user = auth.currentUser;
-  if (!user) return null;
-  return await user.getIdToken();
-}
-
-// Remove token (logout)
-function removeToken() {
+// ===== Auth Helpers =====
+function logout() {
   return auth.signOut();
 }
 
-// Wrapper around fetch that automatically adds the Firebase ID token
-async function apiFetch(path, options = {}) {
-  const token = await getToken();
+// ===== Firestore Todo Helpers =====
+async function getTodos(userId) {
+  const snapshot = await db
+    .collection('users')
+    .doc(userId)
+    .collection('todos')
+    .orderBy('createdAt', 'desc')
+    .get();
 
-  const res = await fetch('/api' + path, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
 
-  // 204 No Content has no body to parse
-  if (res.status === 204) return null;
+async function addTodo(userId, title) {
+  if (!title || title.trim() === '') {
+    throw new Error('Title is required');
+  }
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Something went wrong');
-  return data;
+  const docRef = await db
+    .collection('users')
+    .doc(userId)
+    .collection('todos')
+    .add({
+      title: title.trim(),
+      completed: false,
+      createdAt: new Date(),
+    });
+
+  const doc = await docRef.get();
+  return { id: doc.id, ...doc.data() };
+}
+
+async function updateTodo(userId, todoId, updates) {
+  await db
+    .collection('users')
+    .doc(userId)
+    .collection('todos')
+    .doc(todoId)
+    .update(updates);
+
+  const doc = await db
+    .collection('users')
+    .doc(userId)
+    .collection('todos')
+    .doc(todoId)
+    .get();
+
+  return { id: doc.id, ...doc.data() };
+}
+
+async function deleteTodo(userId, todoId) {
+  await db
+    .collection('users')
+    .doc(userId)
+    .collection('todos')
+    .doc(todoId)
+    .delete();
 }

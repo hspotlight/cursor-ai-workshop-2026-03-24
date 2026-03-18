@@ -1,9 +1,11 @@
 // Check if user is authenticated
+let currentUser = null;
+
 auth.onAuthStateChanged((user) => {
   if (!user) {
     window.location.href = '/login.html';
   } else {
-    // User is logged in, show their email
+    currentUser = user;
     userEmailEl.textContent = user.email;
     loadTodos();
   }
@@ -24,15 +26,15 @@ function showError(msg) {
 
 // Logout
 logoutBtn.addEventListener('click', async () => {
-  await removeToken();
+  await logout();
   window.location.href = '/login.html';
 });
 
-// Load all todos from the server
+// Load all todos from Firestore
 async function loadTodos() {
   try {
-    const data = await apiFetch('/todos');
-    renderTodos(data.todos);
+    const todos = await getTodos(currentUser.uid);
+    renderTodos(todos);
   } catch (err) {
     showError(err.message);
   }
@@ -65,7 +67,7 @@ function renderTodos(todos) {
 
     // Delete
     item.querySelector('.delete-btn').addEventListener('click', () => {
-      deleteTodo(todo.id);
+      deleteTodoItem(todo.id);
     });
 
     todoList.appendChild(item);
@@ -73,19 +75,15 @@ function renderTodos(todos) {
 }
 
 // Add a new todo
-async function addTodo() {
+async function addTodoItem() {
   const title = todoInput.value.trim();
   if (!title) return;
 
   try {
-    const data = await apiFetch('/todos', {
-      method: 'POST',
-      body: JSON.stringify({ title }),
-    });
-
+    const todo = await addTodo(currentUser.uid, title);
     todoInput.value = '';
-    // Prepend new todo to the list without reloading
-    renderTodos([data.todo, ...getCurrentTodos()]);
+    // Prepend new todo to the list
+    renderTodos([todo, ...getCurrentTodos()]);
   } catch (err) {
     showError(err.message);
   }
@@ -94,10 +92,7 @@ async function addTodo() {
 // Toggle a todo's completed state
 async function toggleTodo(id, completed) {
   try {
-    await apiFetch(`/todos/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ completed }),
-    });
+    await updateTodo(currentUser.uid, id, { completed });
     loadTodos();
   } catch (err) {
     showError(err.message);
@@ -106,9 +101,9 @@ async function toggleTodo(id, completed) {
 }
 
 // Delete a todo
-async function deleteTodo(id) {
+async function deleteTodoItem(id) {
   try {
-    await apiFetch(`/todos/${id}`, { method: 'DELETE' });
+    await deleteTodo(currentUser.uid, id);
     document.querySelector(`[data-id="${id}"]`).remove();
   } catch (err) {
     showError(err.message);
@@ -129,7 +124,7 @@ function escapeHtml(str) {
 }
 
 // Events
-addBtn.addEventListener('click', addTodo);
+addBtn.addEventListener('click', addTodoItem);
 todoInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addTodo();
+  if (e.key === 'Enter') addTodoItem();
 });

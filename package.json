@@ -2,15 +2,8 @@
   "name": "velocty",
   "version": "1.0.0",
   "description": "Velocty — a fast, simple todo app for teaching full-stack development",
-  "main": "api/index.js",
   "scripts": {
-    "start": "node api/index.js",
-    "dev": "node --watch api/index.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.2",
-    "firebase-admin": "^12.0.0"
+    "serve": "python3 -m http.server 3000 --directory public",
+    "deploy": "firebase deploy"
   }
 }

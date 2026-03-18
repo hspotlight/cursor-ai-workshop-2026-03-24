@@ -61,7 +61,14 @@ registerForm.addEventListener('submit', async (e) => {
 
   try {
     // Create user with Firebase Auth
-    await auth.createUserWithEmailAndPassword(email, password);
+    const userCred = await auth.createUserWithEmailAndPassword(email, password);
+
+    // Create user document in Firestore
+    await db.collection('users').doc(userCred.user.uid).set({
+      email,
+      createdAt: new Date(),
+    });
+
     // Firebase handles redirect via onAuthStateChanged
   } catch (err) {
     showError(err.message);

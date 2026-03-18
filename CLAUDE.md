@@ -5,40 +5,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Install dependencies
-pnpm install
+# Local development (serve public/ on port 3000)
+python3 -m http.server 3000 --directory public
 
-# Development (with file watching)
-pnpm dev
-
-# Production
-pnpm start
+# Deploy to Firebase Hosting
+firebase deploy
 ```
 
-No test framework is configured.
+No npm dependencies needed — Firebase loads from CDN.
 
-## Environment Setup
+## Setup
 
+**Firebase is already configured.** The web app config is in `public/utils.js`.
+
+To use your own Firebase project instead:
 1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable **Firestore Database** (start in test mode initially)
+2. Enable **Firestore Database** (start in test mode)
 3. Enable **Authentication** → Email/Password provider
-4. Create a **service account** (Project Settings → Service Accounts → Generate new private key) and save as JSON
-5. Copy `.env.example` to `.env` and fill in:
-   - `FIREBASE_PROJECT_ID` — Your Firebase project ID
-   - `FIREBASE_SERVICE_ACCOUNT_KEY` — Paste the entire service account JSON as a string
+4. Update the `firebaseConfig` in `public/utils.js` with your project's credentials (from Project Settings → Your apps → Web)
 
-6. In `public/utils.js`, update the `firebaseConfig` object with your **web app config** (Project Settings → General → Your apps → Web SDK config)
+No backend, no secret keys, no server-side setup needed.
 
 ## Architecture
 
-**Full-stack app:** Express backend + vanilla JS frontend, deployable to Vercel as a serverless function.
+**Frontend-only app:** Plain HTML/CSS/JS files, Firebase SDK loads from CDN.
 
-**Backend** (`api/` + `src/`) follows a strict 3-layer pattern:
-- `src/controllers/` — HTTP handlers; parse requests, call services, return responses
-- `src/services/` — Business logic; validation, orchestration, no direct DB access
-- `src/repositories/` — All Firestore queries; enforce per-user data isolation here
+**Structure:**
+- `public/utils.js` — Firebase initialization + Firestore helper functions
+- `public/login.js` — Uses Firebase Auth for sign-up/login
+- `public/app.js` — Todo CRUD with Firestore
+- `public/login.html`, `index.html` — UI
 
-**Database:** Firestore with collection structure:
+**Auth flow:**
+1. User signs up/logs in via Firebase Auth (browser handles password hashing)
+2. Firebase keeps user session in browser
+3. App reads `auth.currentUser` to get the logged-in user
+
+**Database structure (Firestore):**
 ```
 users/
   {userId}/
@@ -48,29 +51,29 @@ users/
     {todoId}: { title, completed, createdAt }
 ```
 
-**Frontend** (`public/`) is plain HTML/CSS/JS with no build step:
-- `utils.js` — Firebase initialization; shared `apiFetch()` wrapper that auto-attaches the Firebase ID token
-- `login.js` — Handles register/login form toggle; uses Firebase SDK for auth
-- `app.js` — Todo CRUD and DOM rendering
+**Firestore Security Rules** (set in Firebase Console → Firestore → Rules):
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+      match /todos/{todoId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+    }
+  }
+}
+```
 
-**Auth flow:**
-1. Frontend calls `firebase.auth().createUserWithEmailAndPassword()` or `signInWithEmailAndPassword()`
-2. Firebase SDK manages session and provides ID token
-3. Frontend's `getToken()` retrieves the current user's ID token from Firebase
-4. `apiFetch()` attaches token as `Authorization: Bearer <token>`
-5. Backend's `auth.middleware.js` verifies the Firebase ID token using Admin SDK
-6. `userId` (Firebase UID) is attached to request, used by repositories for scoping queries
-
-## API Routes
-
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| POST | `/api/auth/register` | — | Create user in Firebase (optional backend flow) |
-| GET | `/api/todos` | Firebase ID token | Fetch all todos for authenticated user |
-| POST | `/api/todos` | Firebase ID token | Create new todo |
-| PATCH | `/api/todos/:id` | Firebase ID token | Update todo (title or completed status) |
-| DELETE | `/api/todos/:id` | Firebase ID token | Delete todo |
+This ensures users can only read/write their own data.
 
 ## Deployment
 
-Vercel config in `vercel.json` rewrites `/api/*` to `api/index.js`. The same `api/index.js` serves the `public/` folder locally but not on Vercel (static files served via CDN there).
+```bash
+npm install -g firebase-tools
+firebase init hosting
+firebase deploy
+```
+
+Static files from `public/` deploy to Firebase Hosting (CDN). Auth & database are handled by Firebase backend.
