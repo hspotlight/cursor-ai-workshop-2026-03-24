@@ -1,9 +1,15 @@
-const { createClient } = require('@supabase/supabase-js');
+const admin = require('firebase-admin');
 
-// Service key has full DB access — never expose this to the frontend
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+// Initialize Firebase Admin SDK
+// The service account key should be in .env as FIREBASE_SERVICE_ACCOUNT_KEY (JSON string)
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
-module.exports = supabase;
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  projectId: process.env.FIREBASE_PROJECT_ID,
+});
+
+const db = admin.firestore();
+const auth = admin.auth();
+
+module.exports = { db, auth, admin };

@@ -1,33 +1,35 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const { auth } = require('../db/supabase');
 const userRepository = require('../repositories/user.repository');
 
 async function register(email, password) {
-  const existing = await userRepository.findByEmail(email);
-  if (existing) throw new Error('Email already registered');
+  try {
+    // Create user in Firebase Auth (handles password hashing)
+    const firebaseUser = await auth.createUser({
+      email,
+      password,
+    });
 
-  // Never store plain text passwords — hash with bcrypt
-  const passwordHash = await bcrypt.hash(password, 10);
-  const user = await userRepository.create(email, passwordHash);
+    // Store user info in Firestore
+    await userRepository.create(firebaseUser.uid, email);
 
-  return { id: user.id, email: user.email };
+    return { id: firebaseUser.uid, email };
+  } catch (err) {
+    // Firebase throws specific errors like "auth/email-already-exists"
+    if (err.code === 'auth/email-already-exists') {
+      throw new Error('Email already registered');
+    }
+    if (err.code === 'auth/invalid-password') {
+      throw new Error('Password must be at least 6 characters');
+    }
+    throw err;
+  }
 }
 
 async function login(email, password) {
-  const user = await userRepository.findByEmail(email);
-  if (!user) throw new Error('Invalid email or password');
-
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) throw new Error('Invalid email or password');
-
-  // Sign a JWT — the frontend will send this on every request
-  const token = jwt.sign(
-    { userId: user.id },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-
-  return { token, user: { id: user.id, email: user.email } };
+  // Note: This is a backend placeholder. Real login happens on frontend using Firebase SDK.
+  // The frontend sends an ID token that we verify in middleware.
+  // This endpoint could be optional or used for testing.
+  throw new Error('Use Firebase Auth on the frontend to login');
 }
 
 module.exports = { register, login };

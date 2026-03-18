@@ -1,48 +1,55 @@
-const supabase = require('../db/supabase');
+const { db } = require('../db/supabase');
 
 async function findAllByUser(userId) {
-  const { data, error } = await supabase
-    .from('todos')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+  const snapshot = await db
+    .collection('users')
+    .doc(userId)
+    .collection('todos')
+    .orderBy('createdAt', 'desc')
+    .get();
 
-  if (error) throw error;
-  return data;
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 async function create(userId, title) {
-  const { data, error } = await supabase
-    .from('todos')
-    .insert({ user_id: userId, title })
-    .select()
-    .single();
+  const docRef = await db
+    .collection('users')
+    .doc(userId)
+    .collection('todos')
+    .add({
+      title,
+      completed: false,
+      createdAt: new Date(),
+    });
 
-  if (error) throw error;
-  return data;
+  const doc = await docRef.get();
+  return { id: doc.id, ...doc.data() };
 }
 
 async function update(id, userId, fields) {
-  const { data, error } = await supabase
-    .from('todos')
-    .update(fields)
-    .eq('id', id)
-    .eq('user_id', userId) // user can only update their own todos
-    .select()
-    .single();
+  const docRef = db.collection('users').doc(userId).collection('todos').doc(id);
 
-  if (error) throw error;
-  return data;
+  // Check ownership — user can only update their own todos
+  const doc = await docRef.get();
+  if (!doc.exists) {
+    throw new Error('Todo not found');
+  }
+
+  await docRef.update(fields);
+  const updated = await docRef.get();
+  return { id: updated.id, ...updated.data() };
 }
 
 async function remove(id, userId) {
-  const { error } = await supabase
-    .from('todos')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId); // user can only delete their own todos
+  const docRef = db.collection('users').doc(userId).collection('todos').doc(id);
 
-  if (error) throw error;
+  // Check ownership — user can only delete their own todos
+  const doc = await docRef.get();
+  if (!doc.exists) {
+    throw new Error('Todo not found');
+  }
+
+  await docRef.delete();
 }
 
 module.exports = { findAllByUser, create, update, remove };

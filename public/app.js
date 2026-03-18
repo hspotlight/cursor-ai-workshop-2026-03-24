@@ -1,7 +1,13 @@
-// Redirect to login if not authenticated
-if (!getToken()) {
-  window.location.href = '/login.html';
-}
+// Check if user is authenticated
+auth.onAuthStateChanged((user) => {
+  if (!user) {
+    window.location.href = '/login.html';
+  } else {
+    // User is logged in, show their email
+    userEmailEl.textContent = user.email;
+    loadTodos();
+  }
+});
 
 const todoInput = document.getElementById('todo-input');
 const addBtn = document.getElementById('add-btn');
@@ -10,9 +16,6 @@ const userEmailEl = document.getElementById('user-email');
 const logoutBtn = document.getElementById('logout-btn');
 const errorMsg = document.getElementById('error-msg');
 
-// Show logged-in user's email
-userEmailEl.textContent = localStorage.getItem('userEmail') || '';
-
 function showError(msg) {
   errorMsg.textContent = msg;
   errorMsg.style.display = 'block';
@@ -20,8 +23,8 @@ function showError(msg) {
 }
 
 // Logout
-logoutBtn.addEventListener('click', () => {
-  removeToken();
+logoutBtn.addEventListener('click', async () => {
+  await removeToken();
   window.location.href = '/login.html';
 });
 
@@ -130,6 +133,3 @@ addBtn.addEventListener('click', addTodo);
 todoInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') addTodo();
 });
-
-// Initial load
-loadTodos();

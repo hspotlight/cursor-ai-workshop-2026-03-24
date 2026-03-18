@@ -1,25 +1,29 @@
-const supabase = require('../db/supabase');
+const { db } = require('../db/supabase');
 
 async function findByEmail(email) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .single();
+  const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
 
-  if (error) return null;
-  return data;
+  if (snapshot.empty) return null;
+
+  const doc = snapshot.docs[0];
+  return { id: doc.id, ...doc.data() };
 }
 
-async function create(email, passwordHash) {
-  const { data, error } = await supabase
-    .from('users')
-    .insert({ email, password: passwordHash })
-    .select()
-    .single();
+async function create(userId, email) {
+  await db.collection('users').doc(userId).set({
+    email,
+    createdAt: new Date(),
+  });
 
-  if (error) throw error;
-  return data;
+  return { id: userId, email };
 }
 
-module.exports = { findByEmail, create };
+async function getById(userId) {
+  const doc = await db.collection('users').doc(userId).get();
+
+  if (!doc.exists) return null;
+
+  return { id: doc.id, ...doc.data() };
+}
+
+module.exports = { findByEmail, create, getById };

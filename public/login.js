@@ -1,7 +1,9 @@
 // Redirect to app if already logged in
-if (getToken()) {
-  window.location.href = '/index.html';
-}
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    window.location.href = '/index.html';
+  }
+});
 
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
@@ -41,14 +43,9 @@ loginForm.addEventListener('submit', async (e) => {
   const password = loginForm.querySelector('[name="password"]').value;
 
   try {
-    const data = await apiFetch('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
-    setToken(data.token);
-    localStorage.setItem('userEmail', data.user.email);
-    window.location.href = '/index.html';
+    // Sign in with Firebase Auth
+    await auth.signInWithEmailAndPassword(email, password);
+    // Firebase handles redirect via onAuthStateChanged
   } catch (err) {
     showError(err.message);
   }
@@ -63,20 +60,9 @@ registerForm.addEventListener('submit', async (e) => {
   const password = registerForm.querySelector('[name="password"]').value;
 
   try {
-    await apiFetch('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
-    // Auto-login after registration
-    const data = await apiFetch('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
-    setToken(data.token);
-    localStorage.setItem('userEmail', data.user.email);
-    window.location.href = '/index.html';
+    // Create user with Firebase Auth
+    await auth.createUserWithEmailAndPassword(email, password);
+    // Firebase handles redirect via onAuthStateChanged
   } catch (err) {
     showError(err.message);
   }

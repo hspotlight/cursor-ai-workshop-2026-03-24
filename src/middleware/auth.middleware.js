@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
+const { auth } = require('../db/supabase');
 
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -10,8 +10,9 @@ function authMiddleware(req, res, next) {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId; // attach user id so controllers can use it
+    // Verify Firebase ID token
+    const decodedToken = await auth.verifyIdToken(token);
+    req.userId = decodedToken.uid; // Firebase user ID
     next();
   } catch (err) {
     res.status(401).json({ error: 'Invalid or expired token' });

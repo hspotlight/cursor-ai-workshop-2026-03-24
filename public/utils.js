@@ -1,21 +1,33 @@
-// Shared helpers used by both login.js and app.js
+// Shared helpers for Firebase auth and API calls
 
-function getToken() {
-  return localStorage.getItem('token');
+// Initialize Firebase (copy your Firebase config here)
+const firebaseConfig = {
+  apiKey: 'YOUR_API_KEY',
+  authDomain: 'your-project.firebaseapp.com',
+  projectId: 'your-project-id',
+  storageBucket: 'your-project.appspot.com',
+  messagingSenderId: 'your-sender-id',
+  appId: 'your-app-id',
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+// Get current user's ID token for API calls
+async function getToken() {
+  const user = auth.currentUser;
+  if (!user) return null;
+  return await user.getIdToken();
 }
 
-function setToken(token) {
-  localStorage.setItem('token', token);
-}
-
+// Remove token (logout)
 function removeToken() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('userEmail');
+  return auth.signOut();
 }
 
-// Wrapper around fetch that automatically adds the Authorization header
+// Wrapper around fetch that automatically adds the Firebase ID token
 async function apiFetch(path, options = {}) {
-  const token = getToken();
+  const token = await getToken();
 
   const res = await fetch('/api' + path, {
     ...options,
