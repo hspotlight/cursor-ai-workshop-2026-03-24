@@ -1,4 +1,4 @@
-describe('Utils - Firestore Helpers', () => {
+describe('Utils - Firestore Helpers (Default Database)', () => {
   let mockDb;
   let mockCollection;
   let mockDocRef;
