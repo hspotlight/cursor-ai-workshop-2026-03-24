@@ -4,6 +4,12 @@
   "description": "Velocty — a fast, simple todo app for teaching full-stack development",
   "scripts": {
     "serve": "python3 -m http.server 3000 --directory public",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "deploy": "firebase deploy"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
   }
 }

@@ -5,14 +5,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
+# Install dependencies (Jest for testing)
+pnpm install
+# or: npm install
+
 # Local development (serve public/ on port 3000)
 python3 -m http.server 3000 --directory public
+
+# Run tests
+pnpm test
+
+# Run tests in watch mode (re-run on file changes)
+pnpm test:watch
 
 # Deploy to Firebase Hosting
 firebase deploy
 ```
 
-No npm dependencies needed — Firebase loads from CDN.
+Firebase SDK loads from CDN. Jest is the only npm dependency (for testing).
 
 ## Setup
 
@@ -67,6 +77,26 @@ service cloud.firestore {
 ```
 
 This ensures users can only read/write their own data.
+
+## Testing
+
+**Test files** in `__tests__/`:
+- `app.test.js` — Tests for UI helpers (escapeHtml, getCurrentTodos)
+- `utils.test.js` — Tests for validation logic
+
+**Run tests:**
+```bash
+pnpm test              # Run once
+pnpm test:watch       # Run and re-run on changes
+```
+
+**What's tested:**
+- HTML escaping (prevents XSS vulnerabilities)
+- Form validation (empty title checks)
+- DOM parsing (extracting todos from the list)
+- Whitespace trimming
+
+**Adding new tests:** Create files matching `**/*.test.js` in `__tests__/` and they'll auto-discover.
 
 ## Deployment
 
