@@ -25,12 +25,16 @@ function setupAuth() {
 
   // Toggle between login and register forms
   showRegisterBtn.addEventListener('click', () => {
+    logFormToggle('register');
+    logButtonClick('show-register');
     loginForm.style.display = 'none';
     registerForm.style.display = 'flex';
     clearError();
   });
 
   showLoginBtn.addEventListener('click', () => {
+    logFormToggle('login');
+    logButtonClick('show-login');
     registerForm.style.display = 'none';
     loginForm.style.display = 'flex';
     clearError();
@@ -40,6 +44,7 @@ function setupAuth() {
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearError();
+    logButtonClick('login-submit');
 
     const email = loginForm.querySelector('[name="email"]').value;
     const password = loginForm.querySelector('[name="password"]').value;
@@ -50,10 +55,12 @@ function setupAuth() {
       // Sign in with Firebase Auth
       const userCred = await auth.signInWithEmailAndPassword(email, password);
       console.log('✓ User signed in with UID:', userCred.user.uid);
+      logLogin(email);
       // Firebase handles redirect via onAuthStateChanged
     } catch (err) {
       console.error('❌ Login error:', err.code, err.message);
       console.error('Full error:', err);
+      logError(err.code, err.message);
       showError(err.message);
     }
   });
@@ -62,6 +69,7 @@ function setupAuth() {
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearError();
+    logButtonClick('register-submit');
 
     const email = registerForm.querySelector('[name="email"]').value;
     const password = registerForm.querySelector('[name="password"]').value;
@@ -80,11 +88,13 @@ function setupAuth() {
         createdAt: new Date(),
       });
       console.log('✓ User document written to Firestore');
+      logRegister(email);
 
       // Firebase handles redirect via onAuthStateChanged
     } catch (err) {
       console.error('❌ Registration error:', err.code, err.message);
       console.error('Full error:', err);
+      logError(err.code, err.message);
       showError(err.message);
     }
   });

@@ -28,6 +28,8 @@ function setupApp() {
 
   // Logout
   logoutBtn.addEventListener('click', async () => {
+    logButtonClick('logout-btn');
+    logLogout();
     await logout();
     window.location.href = '/login.html';
   });
@@ -88,12 +90,14 @@ function setupApp() {
       console.log('Adding todo:', title, 'for user:', currentUser.uid);
       const todo = await addTodo(currentUser.uid, title);
       console.log('✓ Todo added with ID:', todo.id);
+      logAddTodo(title);
       todoInput.value = '';
       // Prepend new todo to the list
       renderTodos([todo, ...getCurrentTodos()]);
     } catch (err) {
       console.error('❌ Error adding todo:', err.code, err.message);
       console.error('Full error:', err);
+      logError(err.code, err.message);
       showError(err.message);
     }
   }
@@ -101,10 +105,17 @@ function setupApp() {
   // Toggle a todo's completed state
   async function toggleTodo(id, completed) {
     try {
+      const todoTitle = document.querySelector(`[data-id="${id}"] .todo-title`).textContent;
       await updateTodo(currentUser.uid, id, { completed });
+      if (completed) {
+        logCompleteTodo(todoTitle);
+      } else {
+        logUncompleteTodo(todoTitle);
+      }
       loadTodos();
     } catch (err) {
       console.error('❌ Error updating todo:', err.code, err.message);
+      logError(err.code, err.message);
       showError(err.message);
       loadTodos(); // revert UI on failure
     }
@@ -113,10 +124,14 @@ function setupApp() {
   // Delete a todo
   async function deleteTodoItem(id) {
     try {
+      const todoTitle = document.querySelector(`[data-id="${id}"] .todo-title`).textContent;
       await deleteTodo(currentUser.uid, id);
+      logDeleteTodo(todoTitle);
+      logButtonClick('delete-btn');
       document.querySelector(`[data-id="${id}"]`).remove();
     } catch (err) {
       console.error('❌ Error deleting todo:', err.code, err.message);
+      logError(err.code, err.message);
       showError(err.message);
     }
   }
@@ -135,9 +150,15 @@ function setupApp() {
   }
 
   // Events
-  addBtn.addEventListener('click', addTodoItem);
+  addBtn.addEventListener('click', () => {
+    logButtonClick('add-btn');
+    addTodoItem();
+  });
   todoInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') addTodoItem();
+    if (e.key === 'Enter') {
+      logButtonClick('todo-input-enter');
+      addTodoItem();
+    }
   });
 }
 
