@@ -45,10 +45,15 @@ function setupAuth() {
     const password = loginForm.querySelector('[name="password"]').value;
 
     try {
+      console.log('Signing in:', email);
+
       // Sign in with Firebase Auth
-      await auth.signInWithEmailAndPassword(email, password);
+      const userCred = await auth.signInWithEmailAndPassword(email, password);
+      console.log('✓ User signed in with UID:', userCred.user.uid);
       // Firebase handles redirect via onAuthStateChanged
     } catch (err) {
+      console.error('❌ Login error:', err.code, err.message);
+      console.error('Full error:', err);
       showError(err.message);
     }
   });
@@ -62,17 +67,24 @@ function setupAuth() {
     const password = registerForm.querySelector('[name="password"]').value;
 
     try {
+      console.log('Starting registration for:', email);
+
       // Create user with Firebase Auth
       const userCred = await auth.createUserWithEmailAndPassword(email, password);
+      console.log('✓ User created with UID:', userCred.user.uid);
 
       // Create user document in Firestore
+      console.log('Writing user doc to Firestore...');
       await db.collection('users').doc(userCred.user.uid).set({
         email,
         createdAt: new Date(),
       });
+      console.log('✓ User document written to Firestore');
 
       // Firebase handles redirect via onAuthStateChanged
     } catch (err) {
+      console.error('❌ Registration error:', err.code, err.message);
+      console.error('Full error:', err);
       showError(err.message);
     }
   });

@@ -35,9 +35,12 @@ function setupApp() {
   // Load all todos from Firestore
   async function loadTodos() {
     try {
+      console.log('Loading todos for user:', currentUser.uid);
       const todos = await getTodos(currentUser.uid);
+      console.log('✓ Loaded', todos.length, 'todos');
       renderTodos(todos);
     } catch (err) {
+      console.error('❌ Error loading todos:', err.code, err.message);
       showError(err.message);
     }
   }
@@ -82,11 +85,15 @@ function setupApp() {
     if (!title) return;
 
     try {
+      console.log('Adding todo:', title, 'for user:', currentUser.uid);
       const todo = await addTodo(currentUser.uid, title);
+      console.log('✓ Todo added with ID:', todo.id);
       todoInput.value = '';
       // Prepend new todo to the list
       renderTodos([todo, ...getCurrentTodos()]);
     } catch (err) {
+      console.error('❌ Error adding todo:', err.code, err.message);
+      console.error('Full error:', err);
       showError(err.message);
     }
   }
@@ -97,6 +104,7 @@ function setupApp() {
       await updateTodo(currentUser.uid, id, { completed });
       loadTodos();
     } catch (err) {
+      console.error('❌ Error updating todo:', err.code, err.message);
       showError(err.message);
       loadTodos(); // revert UI on failure
     }
@@ -108,6 +116,7 @@ function setupApp() {
       await deleteTodo(currentUser.uid, id);
       document.querySelector(`[data-id="${id}"]`).remove();
     } catch (err) {
+      console.error('❌ Error deleting todo:', err.code, err.message);
       showError(err.message);
     }
   }
