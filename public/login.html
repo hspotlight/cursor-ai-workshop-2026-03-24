@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Velocty — Login</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">Velocty</div>
+      <div class="auth-tagline">Get things done, fast.</div>
+
+      <div id="error-msg" class="error-msg"></div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form">
+        <h2>Sign in</h2>
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <button type="submit" class="btn-primary">Sign in</button>
+        <p class="auth-switch">
+          No account? <button type="button" id="show-register">Create one</button>
+        </p>
+      </form>
+
+      <!-- Register Form (hidden by default) -->
+      <form id="register-form" class="auth-form" style="display: none">
+        <h2>Create account</h2>
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password (min 6 chars)" minlength="6" required />
+        <button type="submit" class="btn-primary">Create account</button>
+        <p class="auth-switch">
+          Already have an account? <button type="button" id="show-login">Sign in</button>
+        </p>
+      </form>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="login.js"></script>
+  </body>
+</html>

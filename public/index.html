@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Velocty</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="app-logo">Velocty</div>
+      <div class="header-right">
+        <span id="user-email" class="user-email"></span>
+        <button id="logout-btn" class="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div id="error-msg" class="app-error"></div>
+
+      <div class="add-form">
+        <input
+          id="todo-input"
+          type="text"
+          placeholder="What needs to be done?"
+          maxlength="200"
+        />
+        <button id="add-btn" class="btn-add">+</button>
+      </div>
+
+      <ul id="todo-list" class="todo-list"></ul>
+    </main>
+
+    <script src="utils.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
