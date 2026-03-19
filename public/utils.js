@@ -1,3 +1,7 @@
+// App version - update this when you release a new version
+const APP_VERSION = '1.0.0';
+const APP_BUILD = 'web';
+
 // Firebase initialization is deferred until after SDK loads
 let auth;
 let db;

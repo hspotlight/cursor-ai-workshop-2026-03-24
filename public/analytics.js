@@ -3,12 +3,23 @@ let analytics;
 
 // Initialize Analytics (called after Firebase SDK loads)
 function initializeAnalytics() {
-  analytics = firebase.analytics();
+  try {
+    analytics = firebase.analytics();
 
-  // Track page view
-  logPageView();
+    // Set app version as user property for all events
+    analytics.setUserProperties({
+      app_version: APP_VERSION,
+      app_build: APP_BUILD,
+    });
 
-  console.log('Firebase Analytics initialized');
+    console.log('✅ Firebase Analytics initialized');
+    console.log(`📦 App Version: ${APP_VERSION} (${APP_BUILD})`);
+
+    // Track page view
+    logPageView();
+  } catch (err) {
+    console.error('❌ Failed to initialize Firebase Analytics:', err);
+  }
 }
 
 // Wait for Firebase to be initialized

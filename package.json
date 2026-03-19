@@ -1,6 +1,7 @@
 {
   "name": "velocty",
   "version": "1.0.0",
+  "releaseDate": "2026-03-19",
   "description": "Velocty — a fast, simple todo app for teaching full-stack development",
   "scripts": {
     "serve": "python3 -m http.server 3000 --directory public",
