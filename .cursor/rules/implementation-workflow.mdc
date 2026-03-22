@@ -1,0 +1,34 @@
+---
+description: Implementation workflow — branch off main, plan AC & tests, TDD, small commits
+alwaysApply: true
+---
+
+# Implementation workflow
+
+## Branching
+
+- **Do not push directly to `main`.** Implement on a **feature branch** (`feature/…`, `fix/…`, etc.), then merge via PR (or your team’s equivalent).
+- Keep `main` deployable; CI on `main` should stay trustworthy (see [.github/workflows/deploy.yml](.github/workflows/deploy.yml)).
+
+## Planning (before coding)
+
+1. **Acceptance criteria** — List what “done” means, including **decision-tree / branch coverage** (each distinct path or outcome gets an AC line).
+2. **User stories → test cases** — Turn AC into concrete **test cases** you can implement in Jest (`pnpm test`). If you cannot phrase a test, the AC is probably too vague.
+3. **Commit plan** — Outline **small, independent, verifiable** commits. If a commit changes **code**, it should include or update **tests** for that behavior.
+
+## TDD loop (default for new behavior)
+
+Repeat until all test cases from the plan are done:
+
+1. **Write a failing test** from a user-story test case.
+2. **Run** `pnpm test` — confirm it **fails** for the right reason.
+3. **Implement** the minimum code to pass.
+4. **Run** `pnpm test` — confirm green.
+5. **Refactor** with tests still green.
+6. **Continue** the loop for the next test case.
+
+Use judgment: pure docs/config-only commits may skip TDD; behavior changes should follow the loop.
+
+## After the task
+
+Follow [.cursor/rules/learning.mdc](.cursor/rules/learning.mdc): retrospective for the user and append learnings to [docs/PROJECT_KNOWLEDGE.md](docs/PROJECT_KNOWLEDGE.md).

@@ -1,0 +1,26 @@
+---
+description: Velocty — Firebase (Hosting, Firestore, Auth, Analytics), frontend-only, pnpm; details in CLAUDE.md
+alwaysApply: true
+---
+
+# Velocty core
+
+## Stack
+
+- Plain **HTML / CSS / JS** in `public/`. No backend, server routes, or secret keys in this repo.
+- **Firebase JS SDK** loads from the **CDN** (`public/utils.js`).
+- **Firebase:** 
+    - **Hosting** (static app)
+    - **Firestore** (data)
+    - **Authentication** (users)
+    - **Analytics** (usage). All are used from the **client** unless docs say otherwise.
+
+## Where things live
+
+- **Hosted:** Firebase Hosting serves **`public/`** (see `firebase.json`). Treat `public/` as user-visible.
+- **Docs:** Commands, Firebase setup, Firestore shape, and deploy → **[CLAUDE.md](CLAUDE.md)**. Don’t paste long command lists in chat; point there instead.
+
+## How we work
+
+- **Package manager:** **pnpm** (`pnpm test`, `pnpm test:watch`). Jest is the main dev dependency.
+- **Changes:** Keep the stack simple; don’t add npm packages to browser code without a need. Follow existing patterns in `public/*.js`.

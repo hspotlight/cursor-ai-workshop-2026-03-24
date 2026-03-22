@@ -1,0 +1,25 @@
+---
+description: End-of-task learning — retrospective, improvements, project knowledge log
+alwaysApply: true
+---
+
+# Learning and retrospectives
+
+## When
+
+At the **end of each task** (or logical milestone), before considering work complete.
+
+## What to share with the user
+
+- **What we learned** — Insights about the codebase, Firebase, tests, or the problem domain.
+- **How we can improve next round** — Process tweaks (planning, TDD, commit size, test coverage), tooling, or docs.
+
+Keep it **honest and specific**; skip generic praise.
+
+## Project knowledge
+
+- **Append** a short entry to **[docs/PROJECT_KNOWLEDGE.md](docs/PROJECT_KNOWLEDGE.md)** (newest entries at the **top**).
+- Use the template in that file: date, title, task name, learnings, “improve next round,” optional links (PR, commits).
+- Goal: **traceability** and **compound learning** across sessions — aligned with [.cursor/rules/production-ready.mdc](.cursor/rules/production-ready.mdc) traceability expectations.
+
+Do not let the log replace **commit messages** or **tests**; it complements them.

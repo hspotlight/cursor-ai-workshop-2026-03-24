@@ -1,0 +1,28 @@
+---
+description: Production-ready changes — tests, AC, safety, rollback, traceability, security
+alwaysApply: true
+---
+
+# Production-ready changes
+
+Treat work as **merge- and deploy-ready** only when the items below are satisfied (or explicitly called out as out of scope).
+
+## Correctness and acceptance
+
+- **Behavior:** Functionality matches intent; edge cases the change touches are considered.
+- **Tests:** `pnpm test` passes. New or updated tests reflect **acceptance criteria** / the business case—not only “green locally.”
+- **Bugs:** Prefer catching issues **before** production: tests, manual checks on `pnpm serve`, and review of user-visible paths in `public/`.
+
+## Code quality
+
+- **Readable and maintainable:** Names, structure, and comments match the rest of the repo; avoid clever one-offs without need.
+- **Backward compatibility (no-break):** Prefer changes that don’t break existing users, data shapes, or Firestore paths unless the task is an intentional migration (then document in commit/PR).
+
+## Security
+
+- No new **XSS** vectors (escape or safe DOM APIs for user content), no widening **Firestore rules** without justification, no secrets in client code. Align with [firestore.rules](firestore.rules) and [CLAUDE.md](CLAUDE.md).
+
+## Rollback and traceability
+
+- **Rollback:** Keep changes **small and focused** so `git revert` (or redeploying a prior Hosting version) is realistic. Avoid mixing unrelated refactors with fixes.
+- **Traceability:** Commit messages (and PR descriptions when used) should make **investigation** easy: what changed, why, and how to verify.
