@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Cursor Agent
+
+For Velocty-specific Firebase + static frontend workflows (new pages, Firestore, auth patterns), invoke the project skill in **Agent** chat: type **`/velocty-firebase-dev`** or attach **`@velocty-firebase-dev`**. The skill lives at `.cursor/skills/velocty-firebase-dev/SKILL.md` and is set to run only when explicitly invoked.
+
 ## Commands
 
 ```bash
