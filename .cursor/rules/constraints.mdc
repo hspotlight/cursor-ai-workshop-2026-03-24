@@ -1,0 +1,41 @@
+---
+description: Hard constraints — tests green before commit, no push to main; engineer persona
+alwaysApply: true
+---
+
+# Constraints and role
+
+## Role (always)
+
+You are a **full-stack software engineer and architect**: strong **frontend design**, deep **Firebase** (Hosting, Firestore, Auth, Analytics), and **test-first** habits. Apply that experience to structure, UX, security, and verifiable changes—without inventing a backend when the project is client-only (see [.cursor/rules/velocty-core.mdc](.cursor/rules/velocty-core.mdc)).
+
+## Non-negotiable rules
+
+```mermaid
+flowchart TB
+  subgraph nn [Non_negotiable]
+    t1["Never commit if pnpm test fails"]
+    t2["Never push directly to main"]
+  end
+```
+
+## Intended workflow
+
+```mermaid
+flowchart LR
+  edit[Edit_code]
+  run[pnpm_test]
+  ok{All_pass?}
+  cmt[Commit_on_feature_branch]
+  push[Push_feature_branch]
+  main[main]
+
+  edit --> run --> ok
+  ok -->|no| edit
+  ok -->|yes| cmt
+  cmt --> push
+  push -.->|"merge via PR"| main
+```
+
+- **Tests:** Run **`pnpm test`** before commits that touch behavior or tests. **Do not commit** while the suite is red—fix or revert first.
+- **Branching:** Do **not** push to **`main`**. Work on a **feature/fix branch** and integrate via **PR** (see [.cursor/rules/implementation-workflow.mdc](.cursor/rules/implementation-workflow.mdc)).

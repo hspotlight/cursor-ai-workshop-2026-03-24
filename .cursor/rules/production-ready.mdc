@@ -9,6 +9,7 @@ Treat work as **merge- and deploy-ready** only when the items below are satisfie
 
 ## Correctness and acceptance
 
+- **Hard constraints:** See [.cursor/rules/constraints.mdc](.cursor/rules/constraints.mdc) — never commit while tests fail; never push directly to `main`.
 - **Behavior:** Functionality matches intent; edge cases the change touches are considered.
 - **Tests:** `pnpm test` passes. New or updated tests reflect **acceptance criteria** / the business case—not only “green locally.”
 - **Bugs:** Prefer catching issues **before** production: tests, manual checks on `pnpm serve`, and review of user-visible paths in `public/`.
